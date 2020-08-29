@@ -1,0 +1,25 @@
+{
+	"name": "WeeklyRun",
+	"properties": {
+		"annotations": [],
+		"runtimeState": "Started",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "PL Ingest Data From AirBnB",
+					"type": "PipelineReference"
+				}
+			}
+		],
+		"type": "ScheduleTrigger",
+		"typeProperties": {
+			"recurrence": {
+				"frequency": "Week",
+				"interval": 1,
+				"startTime": "2020-01-23T10:24:00.000Z",
+				"endTime": "2020-01-28T10:24:00.000Z",
+				"timeZone": "UTC"
+			}
+		}
+	}
+}

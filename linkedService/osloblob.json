@@ -1,0 +1,18 @@
+{
+	"name": "osloblob",
+	"properties": {
+		"annotations": [],
+		"type": "AzureBlobStorage",
+		"typeProperties": {
+			"connectionString": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "oslo_kv",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "AZURE-BLOB-connectionString"
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/linkedservices"
+}
