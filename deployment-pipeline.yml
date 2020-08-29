@@ -1,0 +1,82 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+- 'adf_publish'
+
+variables: 
+  azureSubscriptionName: 'Betale for forbruk(7e0591bd-9e04-44e2-b8aa-cd2b0768790b)'
+  azureSubscriptionId: '7e0591bd-9e04-44e2-b8aa-cd2b0768790b'
+  artifactName: 'ADFdrop'
+
+resources:
+- repo: self
+
+stages:
+- stage: Build
+  displayName: Build stage
+  jobs:
+  - job: BuildJob
+    
+    steps:
+    
+    # Check if there are changes to any file relevant to ADF deployment
+    - script: | 
+        git diff --name-only HEAD HEAD~1
+        RunIfNotEmpty=$(git diff --name-only HEAD HEAD~1 | grep -E 'ARMTemplateForFactory.json|pre-post-deployment-script.ps1|ARMTemplateParametersForFactory.json|deployment-pipeline.yml|deploy-adf-template.yml')
+        if [ -z "$RunIfNotEmpty" ]
+        then
+          echo 'Do not execute'
+          echo '##vso[task.setvariable variable=publish]False'
+        else
+          echo 'Will Execute'
+          echo '##vso[task.setvariable variable=publish]True'
+        fi
+      displayName: 'Check for updated ADF Arm Templates'
+      continueOnError: True
+
+    
+    # Copy only the files relevant to the deployment into the artifact staging location
+    - task: CopyFiles@1
+      condition: eq(variables.publish,True)
+      inputs: 
+        Contents: |
+          **/ARMTemplateForFactory.json
+          **/pre-post-deployment-script.ps1
+          **/ARMTemplateParametersForFactory.json
+        TargetFolder: '$(Build.ArtifactStagingDirectory)'
+        OverWrite: true
+      displayName: 'Copy deployment files to artifact drop'
+
+    - task: PublishPipelineArtifact@1
+      condition: eq(variables.publish,True)
+      inputs:
+        targetPath: '$(Build.ArtifactStagingDirectory)'
+        artifact: '$(artifactName)'
+        publishLocation: 'pipeline'
+
+- stage: Deploy_to_test
+  displayName: Deploy to test
+  dependsOn: Build
+  jobs: 
+  - template: deploy-adf-template.yml
+    parameters:
+      environment: 'test'
+      artifactName: '$(artifactName)'
+      azureSubscriptionName: '$(azureSubscriptionName)'
+      azureSubscriptionId: '$(azureSubscriptionId)'
+
+- stage: Deploy_to_prod
+  displayName: Deploy to prod
+  dependsOn: Deploy_to_test
+  jobs: 
+  - template: deploy-adf-template.yml
+    parameters:
+      environment: 'prod'
+      artifactName: '$(artifactName)'
+      azureSubscriptionName: '$(azureSubscriptionName)'
+      azureSubscriptionId: '$(azureSubscriptionId)'
+
+
