@@ -1,7 +1,4 @@
-# Starter pipeline
-# Start with a minimal pipeline that you can customize to build and deploy your code.
-# Add steps that build, run tests, deploy, and more:
-# https://aka.ms/yaml
+# Created by Halvar Trøyel Nerbø for demo usage at SQL Saturday Oslo August 2020
 
 trigger:
 - 'adf_publish'
